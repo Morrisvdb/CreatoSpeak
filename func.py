@@ -1,6 +1,7 @@
 import re
 import os
 import json
+import tempfile
 from pathlib import Path
 import unicodedata
 import numpy as np
@@ -13,10 +14,12 @@ except ImportError:
     HAS_PYDUB = False
     
 DEFAULT_CONFIG = {
-    "output_dir": str(os.path.join(Path(PlatformDirs("CreatoSpeak").user_documents_path), "CreatoSpeak"))
+    "output_dir": str(os.path.join(Path(PlatformDirs("CreatoSpeak").user_documents_path), "CreatoSpeak")),
+    "input_dir": str(os.path.join(Path(PlatformDirs("CreatoSpeak").user_documents_path), "CreatoSpeak")),
+    "temp_dir": str(tempfile.gettempdir()),
+    "auto_select_input": False,
+    "denoise_audio": True,
 }
-    
-    
     
 def load_sentences(filepath: str) -> list[str]:
     """Load sentences from a text file, one per line."""
@@ -37,6 +40,10 @@ def sentence_to_filename(sentence: str, max_len: int = 40) -> str:
 
 def save_mp3_clip(filepath: str, sample_rate: int, audio_data: np.ndarray):
     """Save a single clip as an MP3 file."""
+    do_denoise = read_config("denoise_audio")
+    if do_denoise:
+        temp_dir = read_config("temp_dir")
+    
     if not HAS_PYDUB:
         raise RuntimeError("mp3 output requires pydub (pip install pydub)")
     data_int16 = (audio_data / max(np.max(np.abs(audio_data)), 1e-9) * 32767).astype(np.int16)
@@ -46,8 +53,12 @@ def save_mp3_clip(filepath: str, sample_rate: int, audio_data: np.ndarray):
         channels=1,
         sample_width=2,
     )
+    
     seg.export(filepath, format="mp3")
     
+    # TODO: Implement noise filtering
+        
+            
 def config_exists():
     dirs = PlatformDirs("CreatoSpeak")
     config_path = dirs.user_config_dir + "/config.json"
@@ -72,12 +83,8 @@ def write_config(key, value):
         except json.JSONDecodeError:
             config = {}
         
-    # try:
     config[key] = value
-    # except ValueError:
-    #     return ValueError
     
-    print(config)
     with open(path, 'w') as f:
         json.dump(config, f, indent=4)
         

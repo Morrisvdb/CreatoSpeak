@@ -32,30 +32,42 @@ settings_window = None
 
 def main():
     config_exists() # Create a default config file if it does not yet exist
-    parser = argparse.ArgumentParser(
-        description="Record voice practice with sentence prompts.",
-        epilog="Saves MP3 clips to a 'recordings/' subdirectory, named after each sentence.",
-    )
-    parser.add_argument("file", nargs="?", help="Text file with one sentence per line")
-    args = parser.parse_args()
-
-    sentences_path = args.file
-    if not sentences_path:
-        # Open file dialog
-        sentences_path = filedialog.askopenfilename(
-            title="Select sentences file",
-            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+    sentences = None
+    if read_config("auto_select_input"):
+        input_file = read_config('input_dir')+'/sentences.txt'
+        if os.path.exists(input_file):
+            sentences = load_sentences(input_file)
+        else:
+            sentences = None
+            
+    if sentences is None:
+        
+        parser = argparse.ArgumentParser(
+            description="Record voice practice with sentence prompts.",
+            epilog="Saves MP3 clips to a 'recordings/' subdirectory, named after each sentence.",
+            
         )
+        parser.add_argument("file", nargs="?", help="Text file with one sentence per line")
+        args = parser.parse_args()
+
+        sentences_path = args.file
         if not sentences_path:
-            sys.exit(0)
+            input_dir = read_config("input_dir")
+            # Open file dialog
+            sentences_path = filedialog.askopenfilename(
+                title="Select sentences file",
+                filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+                initialdir=input_dir
+            )
+            if not sentences_path:
+                sys.exit(0)
 
-    if not os.path.isfile(sentences_path):
-        print(f"File not found: {sentences_path}", file=sys.stderr)
-        sys.exit(1)
+        if not os.path.isfile(sentences_path):
+            print(f"File not found: {sentences_path}", file=sys.stderr)
+            sys.exit(1)
 
-    sentences = load_sentences(sentences_path)
-    # output_dir = os.path.join(os.path.dirname(os.path.abspath(sentences_path)), "recordings")
-
+        sentences = load_sentences(sentences_path)
+    
     output_dir = os.path.join(read_config("output_dir"), "recordings")
 
 

@@ -67,8 +67,18 @@ class SentenceRecorderApp:
         self.settings_btn = Button(
             top_frame,
             text="Settings",
+            font=("Helvetica", 13),
+            bg="#2980b9",
+            fg="white",
+            activebackground="#1f6fa3",
+            activeforeground="white",
+            relief=FLAT,
+            padx=25,
+            pady=8,
+            cursor="hand2",
             command=self._open_settings
         )
+        self.settings_btn.pack(padx=10)
         self.settings_btn.pack(side=RIGHT)
         
 
@@ -349,9 +359,7 @@ class SentenceRecorderApp:
 
         os.makedirs(self.output_dir, exist_ok=True)
         saved = 0
-            
-        print(len(self.audio_clips))
-            
+                        
         for i, (index, sr, raw_data) in enumerate(self.audio_clips):
             if len(raw_data) == 0:
                 continue

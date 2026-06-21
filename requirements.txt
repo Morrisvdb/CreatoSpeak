@@ -1,7 +1,12 @@
+altgraph==0.17.5
 appimage==2.0.0
+audioop-lts==0.2.2
 cffi==2.0.0
 numpy==2.4.6
+packaging==26.2
+platformdirs==4.10.0
 pycparser==3.0
 pydub==0.25.1
+pyinstaller-hooks-contrib==2026.6
+setuptools==82.0.1
 sounddevice==0.5.5
-audioop-lts==0.2.2
