@@ -27,7 +27,7 @@ except ImportError:
 settings_window = None
 
 
-# ── Main ─────────────────────────────────────────────────────────────────────
+# --- Main ---
 
 
 def main():

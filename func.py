@@ -21,6 +21,8 @@ DEFAULT_CONFIG = {
     "temp_dir": str(tempfile.gettempdir()),
     "auto_select_input": False,
     "denoise_audio": True,
+    "autosave": True,
+    "save_on_close": True
 }
 
 def messageWindow(title, message, options: list):

@@ -4,7 +4,7 @@ import threading
 import numpy as np
 
 from recorder import Recorder
-from func import sentence_to_filename, save_mp3_clip
+from func import sentence_to_filename, save_mp3_clip, read_config
 from settings_gui import SettingsWindow
 
 try:
@@ -38,7 +38,7 @@ class SentenceRecorderApp:
         self._build_gui()
         self._show_current()
 
-    # ── GUI Construction ───────────────────────────────────────────────
+    # --- GUI Construction ---
 
     def _build_gui(self):
         self.root = Tk()
@@ -47,7 +47,7 @@ class SentenceRecorderApp:
         self.root.resizable(True, True)
         self.root.configure(bg="#1a1a2e")
 
-        # ── Top frame: progress ──
+        # --- Top frame: progress ---
         top_frame = Frame(self.root, bg="#1a1a2e")
         top_frame.pack(fill=X, padx=20, pady=(15, 5))
 
@@ -82,7 +82,7 @@ class SentenceRecorderApp:
         self.settings_btn.pack(side=RIGHT)
         
 
-        # ── Middle frame: sentence display ──
+        # --- Middle frame: sentence display ---
         mid_frame = Frame(self.root, bg="#1a1a2e")
         mid_frame.pack(expand=True, fill=BOTH, padx=20, pady=(5, 15))
 
@@ -97,7 +97,7 @@ class SentenceRecorderApp:
         )
         self.sentence_label.pack(expand=True, fill=BOTH, padx=20, pady=20)
 
-        # ── Level meter ──
+        # --- Level meter ---
         meter_frame = Frame(self.root, bg="#1a1a2e", height=30)
         meter_frame.pack(fill=X, padx=40, pady=(0, 5))
         meter_frame.pack_propagate(False)
@@ -114,7 +114,7 @@ class SentenceRecorderApp:
         )
         self.level_text.pack()
 
-        # ── Bottom frame: controls ──
+        # --- Bottom frame: controls ---
         bottom_frame = Frame(self.root, bg="#1a1a2e")
         bottom_frame.pack(fill=X, padx=20, pady=(5, 15))
 
@@ -168,36 +168,39 @@ class SentenceRecorderApp:
         )
         self.prev_btn.pack(side=LEFT)
 
-        self.save_btn = Button(
-            bottom_frame,
-            text="Save All",
-            font=("Helvetica", 13),
-            bg="#27ae60",
-            fg="white",
-            activebackground="#1e8449",
-            activeforeground="white",
-            relief=FLAT,
-            padx=20,
-            pady=8,
-            cursor="hand2",
-            state=DISABLED,
-            command=self._save_all,
-        )
-        self.save_btn.pack(side=RIGHT, padx=(10, 0))
+        if not read_config("autosave"):
+            self.save_btn = Button(
+                bottom_frame,
+                text="Save All",
+                font=("Helvetica", 13),
+                bg="#27ae60",
+                fg="white",
+                activebackground="#1e8449",
+                activeforeground="white",
+                relief=FLAT,
+                padx=20,
+                pady=8,
+                cursor="hand2",
+                state=DISABLED,
+                command=self._save_all,
+            )
+            self.save_btn.pack(side=RIGHT, padx=(10, 0))
 
-        # ── Progress dots ──
+        # --- Progress dots ---
         self.dots_frame = Frame(self.root, bg="#1a1a2e")
         self.dots_frame.pack(fill=X, padx=20, pady=(5, 15))
         self.dots: list[Label] = []
         self._draw_dots()
 
-        # ── Periodic level update ──
+        # --- Periodic level update ---
         self._update_level()
 
-        # ── Keyboard shortcuts ──
+        # --- Keyboard shortcuts ---
         self.root.bind("<space>", self._on_space)
         self.root.bind("<Return>", self._on_space)
         self.root.focus_set()
+        
+        self.root.protocol("WM_DELETE_WINDOW", self._window_close)
         
     def _open_settings(self):
         if (self.settings_window is None or
@@ -266,7 +269,7 @@ class SentenceRecorderApp:
     def _update_status(self, msg: str):
         self.status_label.config(text=msg)
 
-    # ── Recording ──────────────────────────────────────────────────────
+    # --- Recording ---
 
     def _toggle_record(self):
         if not self.is_recording:
@@ -304,17 +307,42 @@ class SentenceRecorderApp:
                 self.audio_clips.remove(clip)        
         self.audio_clips.append((self.current_index, sr, data))
         
+        # --- Save file ---
+        autosave = read_config("autosave")
+        if autosave:
+            stem = sentence_to_filename(self.sentences[self.current_index])
+            fname = f"{stem}.mp3"
+            fpath = os.path.join(self.output_dir, fname)
+            dosave = True
+            
+            # Check if the file already exists
+            if os.path.exists(fpath):
+                overwrite = messagebox.askyesno(
+                    "Duplicate files",
+                    f"Warning: There already exists a file with the name {fname} in the output folder. Do you wish to overwite this file?"
+                )
+                if not overwrite:
+                    saved += 1
+                    self._update_status(f"Skipped")
+                    self.root.update()
+                    dosave = False
+            
+            if dosave:
+                save_mp3_clip(fpath, sr, data)
+            
+        # ---
+        
         self.has_recorded = True
         self.next_btn.config(state=NORMAL)
 
         self.record_btn.config(text="⏺  Record", bg="#e74c3c")
         self._update_meter(0)
-        self.level_text.config(text="Saved ✓  — press Record again or Next")
+        self.level_text.config(text="Saved — press Record again or Next")
 
         if self.current_index >= len(self.sentences) - 1:
             self.save_btn.config(state=NORMAL)
             self.next_btn.config(state=DISABLED)
-            self._update_status("All sentences recorded! Save when ready.")
+            self._update_status("All sentences recorded!")
 
     def _update_meter(self, level: float):
         # level is RMS ~0.0–1.0; cap at 1.0
@@ -356,7 +384,7 @@ class SentenceRecorderApp:
                 
         self._show_current()
 
-    # ── Saving ──── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+    # --- Saving ---
 
     def _save_all(self):
         """Save all recorded clips as individual MP3 files, named after each sentence."""
@@ -396,5 +424,11 @@ class SentenceRecorderApp:
             "Complete",
             f"Saved {saved} clip(s) to:\n{self.output_dir}",
         )
-        # self.save_btn.config(state=DISABLED)
         self._update_status(f"Done! {saved} clips saved.")
+
+    def _window_close(self):
+        # TODO: Save clips if autosave is off
+        if not read_config("autosave") and read_config("save_on_close"):
+            self._save_all()
+            
+        self.root.destroy()

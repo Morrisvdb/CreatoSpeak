@@ -14,6 +14,8 @@ class SettingsWindow(Toplevel):
         self.input_dir = None
         self.temp_dir = None
         self.auto_select_file = BooleanVar()
+        self.autosave = BooleanVar()
+        self.save_on_close = BooleanVar()
         self.denoise_audio = BooleanVar()
 
         self.build_gui()
@@ -32,14 +34,14 @@ class SettingsWindow(Toplevel):
         )
         self.output_path_text.bind("<Return>", self._return)
         self.output_path_text.bind("<<Modified>>", self._output_path_text_updated)
-        self.output_path_text.grid(column=0, row=0, padx=20, pady=20)
+        self.output_path_text.grid(column=0, row=0, padx=20, pady=10)
                 
         self.output_path_btn = Button(
             settings_frame,
             text="Output Path",
             command=self._set_output_path
         )
-        self.output_path_btn.grid(column=1, row=0, padx=20, pady=20)
+        self.output_path_btn.grid(column=1, row=0, padx=20, pady=10)
         
         
         # --- Input Path ---
@@ -51,14 +53,14 @@ class SettingsWindow(Toplevel):
         )
         self.input_path_text.bind("<Return>", self._return)
         self.input_path_text.bind("<<Modified>>", self._output_path_text_updated)
-        self.input_path_text.grid(column=0, row=1, padx=20, pady=20)
+        self.input_path_text.grid(column=0, row=1, padx=20, pady=10)
                 
         self.input_path_btn = Button(
             settings_frame,
             text="Input Path",
             command=self._set_input_path
         )
-        self.input_path_btn.grid(column=1, row=1, padx=20, pady=20)
+        self.input_path_btn.grid(column=1, row=1, padx=20, pady=10)
         
         # --- Temp Path ---
         
@@ -70,14 +72,14 @@ class SettingsWindow(Toplevel):
         )
         self.temp_path_text.bind("<Return>", self._return)
         self.temp_path_text.bind("<<Modified>>", self._temp_path_text_updated)
-        self.temp_path_text.grid(column=0, row=2, padx=20, pady=20)
+        self.temp_path_text.grid(column=0, row=2, padx=20, pady=10)
                 
         self.temp_path_btn = Button(
             settings_frame,
             text="Temporary Path",
             command=self._set_output_path
         )
-        self.temp_path_btn.grid(column=1, row=2, padx=20, pady=20)
+        self.temp_path_btn.grid(column=1, row=2, padx=20, pady=10)
         
         # --- Auto Select TickBox ---
         
@@ -86,17 +88,34 @@ class SettingsWindow(Toplevel):
             text="Automatically open 'sentences.txt' in input directory: ",
             variable=self.auto_select_file
         )
-        self.auto_select_file_box.grid(column=0, row=3, padx=20, pady=20)
+        self.auto_select_file_box.grid(column=0, row=3, padx=20, pady=10)
         
-        # --- Denoise ---
+        # --- AutoSave TickBox ---
+        
+        self.autosave_box = Checkbutton(
+            settings_frame,
+            text="Automatically save files.",
+            variable=self.autosave
+        )
+        self.autosave_box.grid(column=0, row=4, padx=20, pady=10)
+        
+        # --- Save on Close TickBox ---
+        
+        self.save_on_close_box = Checkbutton(
+            settings_frame,
+            text="Save files when the program closes",
+            variable=self.save_on_close
+        )
+        self.save_on_close_box.grid(column=0, row=5, padx=20, pady=10)
+        
+        # --- Denoise TickBox ---
         
         self.denoise_audio_box = Checkbutton(
             settings_frame,
             text="Denoise Audio",
             variable=self.denoise_audio
         )
-        self.denoise_audio_box.grid(column=0, row=4, padx=20, pady=20)
-        
+        self.denoise_audio_box.grid(column=0, row=6, padx=20, pady=10)
         
         # --- Save and Reset ---
         
@@ -156,6 +175,8 @@ class SettingsWindow(Toplevel):
             write_config("output_dir", self.output_dir)
             write_config("input_dir", self.input_dir)
             write_config("auto_select_input", self.auto_select_file.get())
+            write_config("autosave", self.autosave.get())
+            write_config("save_on_close", self.save_on_close.get())
             write_config("temp_dir", self.temp_dir)
             write_config("denoise_audio", self.denoise_audio.get())
             
@@ -185,6 +206,8 @@ class SettingsWindow(Toplevel):
         self.temp_path_text.insert(0, self.temp_dir)
         
         self.auto_select_file.set(read_config("auto_select_input"))
+        self.autosave.set(read_config("autosave"))
+        self.save_on_close.set(read_config("save_on_close"))
         self.denoise_audio.set(read_config("denoise_audio"))
         
                 
