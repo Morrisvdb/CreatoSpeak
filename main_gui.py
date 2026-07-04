@@ -275,16 +275,22 @@ class SentenceRecorderApp:
             self._stop_recording()
 
     def _start_recording(self):
-        self.is_recording = True
-        self.record_btn.config(text="⏹  Stop", bg="#34495e")
-        self.level_text.config(text="Recording…")
-
         def on_level(level: float):
             # This runs in the audio callback thread; update GUI via after
             self.root.after(0, self._update_meter, level)
 
         self.recorder = Recorder(on_level)
-        self.recorder.start()
+
+        try:
+            self.recorder.start()
+        except Exception as e:
+            messagebox.showerror("Recorder Error", str(e))
+            self.recorder = None
+            return
+            
+        self.is_recording = True
+        self.record_btn.config(text="⏹  Stop", bg="#34495e")
+        self.level_text.config(text="Recording…")
 
     def _stop_recording(self):
         assert self.recorder is not None

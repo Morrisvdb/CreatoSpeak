@@ -56,7 +56,10 @@ def main():
             # Open file dialog
             sentences_path = filedialog.askopenfilename(
                 title="Select sentences file",
-                filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+                filetypes=[
+                    ("Text files", ".txt .vocab .sentences"),
+                    ("All files", "*.*")
+                    ],
                 initialdir=input_dir
             )
             if not sentences_path:

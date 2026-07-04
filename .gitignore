@@ -1,8 +1,11 @@
 # Created by venv; see https://docs.python.org/3/library/venv.html
 /__pycache__
 /bin
+/build
+/dist
 /include
 /lib
 /lib64
+CreatoSpeak.spec
 pyvenv.cfg
 sentences.txt
