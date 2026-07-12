@@ -178,7 +178,7 @@ def read_vocab(path):
             
             vocab_list.append(pair)
             
-        vocab_list.pop(0)
+        # vocab_list.pop(0)
             
     return vocab_list, (lang_origin, lang_dest)
 
@@ -196,7 +196,7 @@ def read_sentences(path):
                 order = 1
             
         lines = sentence_file.readlines()
-        lines.pop(0)
+        # lines.pop(0)
         for line in lines:
             if not re.match("^[a-zA-Z0-9_ ]+\\|[a-zA-Z0-9_ ]+", line):
                 break
